@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>English Tutor</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#2f5bea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="English Tutor">
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --ink: #1d1d1f; --muted: #6e6e73; --line: #e4e2dd;
+    --accent: #2f5bea; --accent-ink: #ffffff; --soft: #eef2fe; --ok: #1f8a4c; --warn: #b3261e; --chip: #f0efeb;
+    --green: #22a45d; --red: #e5484d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151517; --card: #1f1f22; --ink: #f2f2f4; --muted: #a0a0a8; --line: #2e2e33;
+      --accent: #6d8dff; --accent-ink: #0d0d10; --soft: #232a44; --ok: #5cc98a; --warn: #ff8a80; --chip: #2a2a2f;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: calc(12px + env(safe-area-inset-top)) 16px 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 19px; margin: 0; letter-spacing: -0.01em; }
+  header .sub { font-size: 13px; color: var(--muted); }
+  .iconbtn { background: none; border: 0; font-size: 22px; color: var(--muted); padding: 6px; cursor: pointer; }
+  main { padding: 16px 16px 100px; max-width: 640px; margin: 0 auto; }
+  nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 5; display: flex; background: var(--card);
+    border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+  nav button { flex: 1; background: none; border: 0; padding: 10px 2px 12px; font: inherit; font-size: 12px;
+    color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+  nav button .ic { font-size: 20px; line-height: 1; }
+  nav button.on { color: var(--accent); font-weight: 600; }
+  section { display: none; } section.on { display: block; }
+  h2 { font-size: 17px; margin: 4px 0 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 5px; }
+  label:first-child { margin-top: 0; }
+  input[type=text], input[type=url], input[type=password], textarea, select {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; padding: 11px 12px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+    font: inherit; font-weight: 600; border: 0; border-radius: 12px; padding: 13px 16px; margin-top: 14px;
+    background: var(--accent); color: var(--accent-ink); text-decoration: none; cursor: pointer; }
+  .btn:disabled { opacity: .5; }
+  .btn.ghost { background: var(--soft); color: var(--accent); }
+  .btn.small { width: auto; padding: 8px 12px; margin-top: 0; font-size: 14px; border-radius: 10px; }
+  .btn.danger { background: none; color: var(--warn); border: 1px solid var(--line); }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 15px; }
+  .check input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .stepper { display: flex; align-items: center; gap: 12px; }
+  .stepper button { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); font-size: 22px; cursor: pointer; }
+  .stepper .val { font-size: 22px; font-weight: 700; min-width: 32px; text-align: center; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .preview { background: var(--soft); border-radius: 12px; padding: 12px; font-size: 14px; margin-top: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { font-size: 12px; color: var(--muted); }
+  .seg { display: flex; background: var(--chip); border-radius: 10px; padding: 3px; margin-bottom: 12px; }
+  .seg button { flex: 1; border: 0; background: none; font: inherit; font-size: 14px; padding: 8px; border-radius: 8px; color: var(--muted); cursor: pointer; }
+  .seg button.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .item .en { font-weight: 600; }
+  .item .es { color: var(--muted); font-size: 14px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 12px; background: var(--chip); border-radius: 999px; padding: 3px 9px; color: var(--muted); }
+  .chip.due { background: var(--soft); color: var(--accent); font-weight: 600; }
+  .chip.ok { color: var(--ok); }
+  .edit { display: none; border-top: 1px solid var(--line); margin-top: 10px; padding-top: 4px; }
+  .item.open .edit { display: block; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .said { text-decoration: line-through; color: var(--muted); font-size: 14px; }
+  .correct { font-weight: 600; }
+  .empty { text-align: center; color: var(--muted); padding: 28px 12px; }
+  #toast { position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px;
+    transition: .2s; pointer-events: none; z-index: 20; max-width: 90%; text-align: center; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .loading { text-align: center; color: var(--muted); padding: 40px 0; }
+
+  /* ---------- teléfono ---------- */
+  .phone { border-radius: 24px; padding: 22px 18px 20px; text-align: center; color: #fff;
+    background: radial-gradient(120% 90% at 50% 0%, #3b5cd9 0%, #1d2a6b 55%, #10152f 100%);
+    box-shadow: 0 10px 30px rgba(16,21,47,.25); }
+  .plan { display: inline-block; font-size: 13px; background: rgba(255,255,255,.14); border-radius: 999px;
+    padding: 5px 12px; min-height: 26px; }
+  .avatar-wrap { position: relative; width: 168px; height: 168px; margin: 26px auto 16px; }
+  .ring { position: absolute; inset: 0; border-radius: 50%; background: rgba(255,255,255,.12);
+    transition: transform .08s linear, background .3s; }
+  .ring.user { background: rgba(110,231,183,.22); }
+  .avatar { position: absolute; inset: 22px; border-radius: 50%; background: linear-gradient(160deg, #fff, #dfe6ff);
+    display: flex; align-items: center; justify-content: center; font-size: 56px; color: #2f5bea; font-weight: 700;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+  .who { font-size: 20px; font-weight: 600; }
+  .status { font-size: 15px; opacity: .85; margin-top: 4px; min-height: 21px; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 14px; opacity: .7; margin-top: 2px; min-height: 20px; }
+  .controls { display: flex; justify-content: center; align-items: center; gap: 26px; margin-top: 26px; }
+  .cbtn { width: 58px; height: 58px; border-radius: 50%; border: 0; font-size: 24px; cursor: pointer;
+    background: rgba(255,255,255,.16); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .cbtn.on { background: #fff; color: #1d2a6b; }
+  .cbtn:disabled { opacity: .35; }
+  .callbtn { width: 76px; height: 76px; font-size: 30px; background: var(--green); box-shadow: 0 6px 18px rgba(34,164,93,.45); }
+  .callbtn.hang { background: var(--red); box-shadow: 0 6px 18px rgba(229,72,77,.45); transform: rotate(135deg); }
+  .clabel { font-size: 12px; opacity: .75; margin-top: 6px; }
+  .cwrap { display: flex; flex-direction: column; align-items: center; }
+  .quota { font-size: 13px; opacity: .75; margin-top: 18px; }
+  .quota .bar { height: 5px; background: rgba(255,255,255,.18); border-radius: 99px; margin: 6px auto 0; max-width: 220px; overflow: hidden; }
+  .quota .bar i { display: block; height: 100%; background: #fff; border-radius: 99px; }
+  #transcript { margin-top: 14px; }
+  .bubble { max-width: 85%; padding: 9px 12px; border-radius: 16px; margin: 6px 0; font-size: 15px; }
+  .bubble.agent { background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .bubble.user { background: var(--accent); color: var(--accent-ink); margin-left: auto; border-bottom-right-radius: 4px; }
+  .after { margin-top: 14px; }
+
+  /* ---------- configuración ---------- */
+  #setup { position: fixed; inset: 0; z-index: 30; background: var(--bg); overflow: auto; display: none;
+    padding: calc(24px + env(safe-area-inset-top)) 16px 24px; }
+  #setup.on { display: block; }
+  #setup .inner { max-width: 520px; margin: 0 auto; }
+  #setup h1 { font-size: 24px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+
+<!-- CONFIGURACIÓN INICIAL -->
+<div id="setup">
+  <div class="inner">
+    <h1>English Tutor</h1>
+    <p class="hint" style="font-size:15px">Conecta la app con tu memoria (tu Apps Script). Solo se guarda en este dispositivo.</p>
+    <div class="card">
+      <label for="c-url">URL de tu Apps Script (la que acaba en /exec)</label>
+      <input type="url" id="c-url" placeholder="https://script.google.com/macros/s/…/exec" autocapitalize="off" autocorrect="off">
+      <label for="c-token">Tu token</label>
+      <input type="password" id="c-token" placeholder="el mismo de ?k=…" autocapitalize="off" autocorrect="off">
+      <button class="btn" id="c-save">Conectar</button>
+      <button class="btn ghost" id="c-cancel" style="display:none">Cancelar</button>
+      <div class="hint" id="c-msg"></div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>English Tutor</h1>
+    <div class="sub" id="subtitle">Cargando…</div>
+  </div>
+  <button class="iconbtn" id="gear" aria-label="Configuración">⚙︎</button>
+</header>
+
+<main>
+  <div id="loading" class="loading">Cargando tus datos…</div>
+
+  <!-- CLASE -->
+  <section id="tab-call">
+    <div class="phone">
+      <div class="plan" id="planChip"></div>
+      <div class="avatar-wrap"><div class="ring" id="ring"></div><div class="avatar">EN</div></div>
+      <div class="who">Your English Tutor</div>
+      <div class="status" id="callStatus">Pulsa el botón verde para empezar</div>
+      <div class="timer" id="timer"></div>
+      <div class="controls">
+        <div class="cwrap"><button class="cbtn" id="muteBtn" disabled aria-label="Silenciar">🎙</button><div class="clabel" id="muteLbl">Silenciar</div></div>
+        <div class="cwrap"><button class="cbtn callbtn" id="callBtn" aria-label="Llamar">📞</button><div class="clabel" id="callLbl">Llamar</div></div>
+        <div class="cwrap"><button class="cbtn on" id="txBtn" aria-label="Transcripción">💬</button><div class="clabel">Texto</div></div>
+      </div>
+      <div class="quota" id="quota"></div>
+    </div>
+    <div class="after" id="after"></div>
+    <div id="transcript"></div>
+  </section>
+
+  <!-- AÑADIR -->
+  <section id="tab-add">
+    <h2>Nueva expresión</h2>
+    <div class="card">
+      <label for="f-en">En inglés *</label>
+      <input type="text" id="f-en" placeholder="e.g. walk someone through something" autocapitalize="off">
+      <label for="f-es">Qué significa</label>
+      <input type="text" id="f-es" placeholder="explicar algo paso a paso">
+      <label for="f-ex">Ejemplo (opcional)</label>
+      <input type="text" id="f-ex" placeholder="Let me walk you through the numbers.">
+      <label for="f-note">Matiz / alternativas (opcional)</label>
+      <input type="text" id="f-note" placeholder="más informal que 'explain'">
+      <label for="f-topic">Tema</label>
+      <select id="f-topic"></select>
+      <button class="btn" id="addBtn">Añadir y repasar en la próxima clase</button>
+      <div class="hint">El profe la meterá en la conversación de la próxima clase y te hará usarla.</div>
+    </div>
+    <h2>Añadidas por ti</h2>
+    <div id="recent"></div>
+  </section>
+
+  <!-- PRÓXIMA CLASE -->
+  <section id="tab-next">
+    <h2>Próxima clase</h2>
+    <div class="card">
+      <label for="s-type">Tipo de clase</label>
+      <select id="s-type"></select>
+      <label for="s-topic">Tema</label>
+      <select id="s-topic"></select>
+      <label class="check"><input type="checkbox" id="s-once"> Solo para la próxima clase</label>
+      <div class="hint">Si lo desmarcas, se mantiene en todas las clases hasta que lo cambies.</div>
+      <div class="preview" id="planPreview"></div>
+    </div>
+    <div class="card">
+      <label>Expresiones a repasar por clase</label>
+      <div class="stepper">
+        <button id="dueMinus" aria-label="Menos">−</button>
+        <span class="val" id="dueVal">6</span>
+        <button id="duePlus" aria-label="Más">+</button>
+      </div>
+      <div class="hint" id="dueHint"></div>
+    </div>
+    <div class="card">
+      <label for="s-link">Enlace o ID de tu agente (ElevenLabs)</label>
+      <input type="url" id="s-link" placeholder="https://elevenlabs.io/app/talk-to?agent_id=…  o  agent_…" autocapitalize="off">
+      <div class="hint">Lo necesita la pestaña «Clase» para llamar a tu profe.</div>
+    </div>
+    <button class="btn" id="saveSettings">Guardar</button>
+  </section>
+
+  <!-- PROGRESO -->
+  <section id="tab-progress">
+    <div class="stats" id="stats"></div>
+    <div class="seg" id="seg">
+      <button data-v="expr" class="on">Expresiones</button>
+      <button data-v="err">Errores</button>
+      <button data-v="ses">Clases</button>
+    </div>
+    <div id="v-expr">
+      <input type="text" id="search" placeholder="Buscar…" style="margin-bottom:10px">
+      <div id="exprList"></div>
+    </div>
+    <div id="v-err" style="display:none"></div>
+    <div id="v-ses" style="display:none"></div>
+  </section>
+</main>
+
+<nav id="nav">
+  <button data-t="call" class="on"><span class="ic">📞</span>Clase</button>
+  <button data-t="add"><span class="ic">＋</span>Añadir</button>
+  <button data-t="next"><span class="ic">🎯</span>Próxima</button>
+  <button data-t="progress"><span class="ic">📈</span>Progreso</button>
+</nav>
+<div id="toast"></div>
+
+<script src="elevenlabs-client.js"></script>
+<script>
+// ====================== configuración local ======================
+const FREE_MINUTES = 15; // minutos gratis al mes de ElevenLabs (cámbialo si subes de plan)
+let CFG = null;
+function loadCfg() { try { return JSON.parse(localStorage.getItem('et_cfg') || 'null'); } catch (e) { return null; } }
+function saveCfg(c) { try { localStorage.setItem('et_cfg', JSON.stringify(c)); } catch (e) {} }
+function cleanUrl(u) {
+  u = String(u || '').trim();
+  u = u.replace(/\/u\/\d+\//, '/');
+  const i = u.indexOf('/exec');
+  return i >= 0 ? u.slice(0, i + 5) : u;
+}
+
+// ====================== API (Apps Script) ======================
+function api(fn) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  const url = CFG.url + '?k=' + encodeURIComponent(CFG.token) + '&action=api';
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ fn: fn, args: args })
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    if (j.error) throw new Error(j.error === 'unauthorized' ? 'Token incorrecto' : j.error);
+    return j.result;
+  });
+}
+
+// ====================== utilidades ======================
+let DATA = null;
+let dueCount = 6;
+const $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+  return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2400); }
+function fail(e) { toast('Error: ' + (e && e.message || e)); }
+function daysBetween(a, b) {
+  const pa = a.split('-').map(Number), pb = b.split('-').map(Number);
+  return Math.round((Date.UTC(pb[0], pb[1] - 1, pb[2]) - Date.UTC(pa[0], pa[1] - 1, pa[2])) / 86400000);
+}
+function reviewLabel(x) {
+  if (x.due) return 'repaso: hoy';
+  if (!x.next_review) return '';
+  const d = daysBetween(DATA.today, x.next_review);
+  return d <= 0 ? 'repaso: hoy' : d === 1 ? 'repaso: mañana' : 'repaso: en ' + d + ' días';
+}
+function levelLabel(l) { return l === 0 ? 'Nueva' : l >= 4 ? 'Dominada' : 'Aprendiendo · ' + l + '/3'; }
+function agentIdFrom(s) {
+  s = String(s || '').trim();
+  const m = s.match(/agent_id=([\w-]+)/) || s.match(/(agent_[\w-]+)/);
+  return m ? m[1] : (/^[\w-]{10,}$/.test(s) ? s : '');
+}
+
+// ====================== pestañas ======================
+document.querySelectorAll('#nav button').forEach(function (b) { b.onclick = function () { showTab(b.dataset.t); }; });
+function showTab(t) {
+  document.querySelectorAll('#nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); });
+  document.querySelectorAll('section').forEach(function (s) { s.classList.toggle('on', s.id === 'tab-' + t); });
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('#seg button').forEach(function (b) {
+  b.onclick = function () {
+    document.querySelectorAll('#seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    ['expr', 'err', 'ses'].forEach(function (v) { $('v-' + v).style.display = v === b.dataset.v ? '' : 'none'; });
+  };
+});
+
+// ====================== carga ======================
+function load() {
+  return api('data').then(function (d) {
+    DATA = d;
+    $('loading').style.display = 'none';
+    if (!document.querySelector('section.on')) showTab('call');
+    renderAll();
+  }).catch(function (e) {
+    $('loading').style.display = '';
+    $('loading').textContent = 'No se pudo cargar: ' + (e && e.message || e) + '. Revisa la configuración (⚙︎).';
+  });
+}
+
+function options(list, first, value) {
+  return (first ? '<option value="">' + esc(first) + '</option>' : '') +
+    list.map(function (x) { return '<option' + (x === value ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('');
+}
+
+function renderAll() {
+  const s = DATA.settings, st = DATA.stats;
+  $('subtitle').textContent = st.due + ' pendientes hoy · ' + st.total + ' expresiones';
+
+  // Clase
+  const type = s.next_type, topic = s.next_topic;
+  $('planChip').textContent = (type || topic)
+    ? 'Hoy: ' + (type || 'tipo libre') + (topic ? ' · ' + topic : '')
+    : 'Hoy: lo eliges al empezar · ' + Math.min(st.due, Number(s.max_due) || 0) + ' repasos';
+  const used = st.month_minutes || 0;
+  const pct = Math.min(100, Math.round(used / FREE_MINUTES * 100));
+  $('quota').innerHTML = 'Este mes: ' + String(used).replace('.', ',') + ' de ' + FREE_MINUTES + ' min' +
+    '<div class="bar"><i style="width:' + pct + '%"></i></div>';
+  if (!inCall) {
+    const missing = 'Falta el enlace de tu agente (pestaña Próxima)';
+    if (!agentIdFrom(s.agent_link)) setStatus(missing);
+    else if ($('callStatus').textContent === missing) setStatus('Pulsa el botón verde para empezar');
+  }
+
+  // Añadir
+  if (!$('f-topic').options.length) $('f-topic').innerHTML = options(DATA.topics, null, 'general');
+  const mine = DATA.expressions.filter(function (x) { return x.source === 'app'; })
+    .sort(function (a, b) { return a.created < b.created ? 1 : -1; }).slice(0, 8);
+  $('recent').innerHTML = mine.length ? mine.map(exprItem).join('') :
+    '<div class="empty">Aún no has añadido ninguna. Las que añadas aparecerán aquí.</div>';
+
+  // Próxima clase
+  $('s-type').innerHTML = options(DATA.types, 'Lo elige el profe', s.next_type);
+  $('s-topic').innerHTML = options(DATA.topics, 'Lo elige el profe', s.next_topic);
+  $('s-once').checked = s.one_time === '1';
+  $('s-link').value = s.agent_link || '';
+  dueCount = Number(s.max_due) || 0;
+  renderDue(); renderPreview();
+
+  // Progreso
+  $('stats').innerHTML = [
+    ['Pendientes hoy', st.due], ['Aprendiendo', st.learning], ['Dominadas', st.mastered],
+    ['Clases', st.sessions], ['Minutos', st.minutes], ['Errores', st.errors]
+  ].map(function (x) { return '<div class="stat"><b>' + x[1] + '</b><span>' + x[0] + '</span></div>'; }).join('');
+  renderExprList();
+  $('v-err').innerHTML = DATA.errors.length ? DATA.errors.map(function (e) {
+    return '<div class="item" data-ekey="' + esc(e.key) + '">' +
+      '<div class="said">' + esc(e.said) + '</div><div class="correct">' + esc(e.correct) + '</div>' +
+      (e.explanation ? '<div class="es">' + esc(e.explanation) + '</div>' : '') +
+      '<div class="meta"><span class="chip">' + esc(e.category || 'general') + '</span>' +
+      '<span class="chip' + (e.count > 1 ? ' due' : '') + '">×' + e.count + '</span>' +
+      '<span class="chip">' + esc(e.last_seen) + '</span></div>' +
+      '<div class="actions"><button class="btn small danger" data-act="delErr">Ya lo tengo, quitar</button></div></div>';
+  }).join('') : '<div class="empty">Sin errores registrados todavía.</div>';
+  $('v-ses').innerHTML = DATA.sessions.length ? DATA.sessions.map(function (x) {
+    return '<div class="item"><div class="en">' + esc(x.date) + (x.minutes ? ' · ' + x.minutes + ' min' : '') + '</div>' +
+      '<div class="es">' + esc(x.summary || 'Sin resumen') + '</div>' +
+      '<div class="meta">' + (x.used ? '<span class="chip ok">Usaste: ' + esc(x.used) + '</span>' : '') +
+      '<span class="chip">' + x.new_expr + ' nuevas</span><span class="chip">' + x.errors + ' errores</span></div></div>';
+  }).join('') : '<div class="empty">Aún no hay clases registradas.</div>';
+}
+
+function exprItem(x) {
+  return '<div class="item" data-key="' + esc(x.key) + '">' +
+    '<div class="en">' + esc(x.en) + '</div>' + (x.es ? '<div class="es">' + esc(x.es) + '</div>' : '') +
+    '<div class="meta">' + (reviewLabel(x) ? '<span class="chip' + (x.due ? ' due' : '') + '">' + reviewLabel(x) + '</span>' : '') +
+    '<span class="chip' + (x.level >= 4 ? ' ok' : '') + '">' + levelLabel(x.level) + '</span>' +
+    '<span class="chip">' + esc(x.topic || 'general') + '</span></div>' +
+    '<div class="edit">' +
+      '<label>En inglés</label><input type="text" data-f="en" value="' + esc(x.en) + '">' +
+      '<label>Qué significa</label><input type="text" data-f="es" value="' + esc(x.es) + '">' +
+      '<label>Ejemplo</label><input type="text" data-f="example" value="' + esc(x.example) + '">' +
+      '<label>Matiz</label><input type="text" data-f="note" value="' + esc(x.note) + '">' +
+      '<label>Tema</label><select data-f="topic">' + options(DATA.topics, null, x.topic || 'general') + '</select>' +
+      '<div class="actions">' +
+        '<button class="btn small" data-act="save">Guardar</button>' +
+        (x.due ? '' : '<button class="btn small ghost" data-act="review">Repasar en la próxima</button>') +
+        '<button class="btn small danger" data-act="del">Borrar</button>' +
+      '</div></div></div>';
+}
+
+function renderExprList() {
+  const q = $('search').value.trim().toLowerCase();
+  const list = DATA.expressions.filter(function (x) {
+    return !q || (x.en + ' ' + x.es + ' ' + x.topic).toLowerCase().indexOf(q) >= 0;
+  });
+  $('exprList').innerHTML = list.length ? list.map(exprItem).join('') : '<div class="empty">Nada por aquí.</div>';
+}
+$('search').oninput = renderExprList;
+
+document.addEventListener('click', function (ev) {
+  const item = ev.target.closest('.item[data-key]');
+  const act = ev.target.dataset && ev.target.dataset.act;
+  if (item && !act && !ev.target.closest('.edit')) { item.classList.toggle('open'); return; }
+  if (!act) return;
+  if (act === 'delErr') {
+    const e = ev.target.closest('.item[data-ekey]');
+    confirmTap(ev.target, function () { api('delError', e.dataset.ekey).then(function () { toast('Error quitado'); load(); }).catch(fail); });
+    return;
+  }
+  const key = item.dataset.key;
+  if (act === 'save') {
+    const o = {};
+    item.querySelectorAll('[data-f]').forEach(function (f) { o[f.dataset.f] = f.value; });
+    api('update', key, o).then(function () { toast('Guardada'); load(); }).catch(fail);
+  } else if (act === 'review') {
+    api('review', key).then(function () { toast('Entra en la próxima clase'); load(); }).catch(fail);
+  } else if (act === 'del') {
+    confirmTap(ev.target, function () { api('del', key).then(function () { toast('Borrada'); load(); }).catch(fail); });
+  }
+});
+function confirmTap(btn, fn) {
+  if (btn.dataset.armed) { fn(); return; }
+  const txt = btn.textContent;
+  btn.dataset.armed = '1'; btn.textContent = '¿Seguro? Toca otra vez';
+  setTimeout(function () { delete btn.dataset.armed; btn.textContent = txt; }, 3000);
+}
+
+// ====================== añadir ======================
+$('addBtn').onclick = function () {
+  const en = $('f-en').value.trim();
+  if (!en) { toast('Escribe la expresión en inglés'); $('f-en').focus(); return; }
+  const btn = $('addBtn'); btn.disabled = true;
+  api('add', { en: en, es: $('f-es').value, example: $('f-ex').value, note: $('f-note').value, topic: $('f-topic').value })
+    .then(function (r) {
+      btn.disabled = false;
+      if (r && r.saved) {
+        ['f-en', 'f-es', 'f-ex', 'f-note'].forEach(function (id) { $(id).value = ''; });
+        toast('Añadida · entra en la próxima clase'); load();
+      } else toast(r && r.reason === 'already in bank' ? 'Ya la tenías en tu banco' : 'No se pudo guardar');
+    }).catch(function (e) { btn.disabled = false; fail(e); });
+};
+
+// ====================== próxima clase ======================
+function renderDue() {
+  $('dueVal').textContent = dueCount;
+  const pending = DATA ? DATA.stats.due : 0;
+  $('dueHint').textContent = 'Hoy tienes ' + pending + ' pendientes. ' +
+    (dueCount === 0 ? 'Con 0, el profe no mete repaso.' : 'El profe meterá hasta ' + dueCount + ' en cada clase.');
+}
+$('dueMinus').onclick = function () { dueCount = Math.max(0, dueCount - 1); renderDue(); };
+$('duePlus').onclick = function () { dueCount = Math.min(15, dueCount + 1); renderDue(); };
+function renderPreview() {
+  const type = $('s-type').value, topic = $('s-topic').value;
+  $('planPreview').innerHTML = (!type && !topic)
+    ? 'El profe te preguntará qué te apetece, como siempre.'
+    : 'El profe empezará con: <b>' + esc(type || 'el tipo de clase que él elija') + '</b> sobre <b>' +
+      esc(topic || 'un tema que él elija') + '</b>' + ($('s-once').checked ? ' (solo la próxima clase).' : ' (en todas las clases).');
+}
+['s-type', 's-topic', 's-once'].forEach(function (id) { $(id).onchange = renderPreview; });
+$('saveSettings').onclick = function () {
+  const btn = $('saveSettings'); btn.disabled = true;
+  api('settings', {
+    next_type: $('s-type').value, next_topic: $('s-topic').value,
+    one_time: $('s-once').checked ? '1' : '0', max_due: dueCount, agent_link: $('s-link').value.trim()
+  }).then(function () { btn.disabled = false; toast('Guardado'); load(); })
+    .catch(function (e) { btn.disabled = false; fail(e); });
+};
+
+// ====================== CLASE (llamada de voz) ======================
+let conv = null, inCall = false, t0 = 0, timerH = null, rafH = null, wakeLock = null, showTx = true, muted = false;
+
+function setStatus(t) { $('callStatus').textContent = t; }
+function fmtTime(ms) { const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function addBubble(role, text) {
+  if (!text) return;
+  const d = document.createElement('div');
+  d.className = 'bubble ' + (role === 'user' ? 'user' : 'agent');
+  d.textContent = text;
+  $('transcript').appendChild(d);
+  if (showTx) d.scrollIntoView({ block: 'end', behavior: 'smooth' });
+}
+function animate() {
+  if (!conv) return;
+  let v = 0, user = false;
+  try {
+    const out = conv.getOutputVolume ? conv.getOutputVolume() : 0;
+    const inp = conv.getInputVolume ? conv.getInputVolume() : 0;
+    user = inp > out; v = Math.max(out, inp);
+  } catch (e) {}
+  const ring = $('ring');
+  ring.style.transform = 'scale(' + (1 + Math.min(0.35, v * 0.9)).toFixed(3) + ')';
+  ring.classList.toggle('user', user && v > 0.02);
+  rafH = requestAnimationFrame(animate);
+}
+function setCallUi(on) {
+  inCall = on;
+  $('callBtn').classList.toggle('hang', on);
+  $('callLbl').textContent = on ? 'Colgar' : 'Llamar';
+  $('muteBtn').disabled = !on;
+  if (!on) { muted = false; $('muteBtn').classList.remove('on'); $('muteLbl').textContent = 'Silenciar'; }
+}
+async function startCall() {
+  const agentId = agentIdFrom(DATA && DATA.settings.agent_link);
+  if (!agentId) { toast('Pega el enlace de tu agente en «Próxima»'); showTab('next'); return; }
+  if (!window.ElevenLabsClient) { toast('No se cargó la librería de voz'); return; }
+  $('after').innerHTML = ''; $('transcript').innerHTML = '';
+  setCallUi(true); setStatus('Pidiendo micrófono…');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(function (t) { t.stop(); });
+  } catch (e) {
+    setCallUi(false); setStatus('Sin permiso de micrófono');
+    toast('Permite el micrófono en el navegador para hablar con el profe'); return;
+  }
+  setStatus('Conectando…');
+  try {
+    conv = await ElevenLabsClient.Conversation.startSession({
+      agentId: agentId,
+      onConnect: function () {
+        t0 = Date.now(); setStatus('Conectado');
+        timerH = setInterval(function () { $('timer').textContent = fmtTime(Date.now() - t0); }, 500);
+        try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (w) { wakeLock = w; }).catch(function () {}); } catch (e) {}
+        animate();
+      },
+      onDisconnect: function () { endUi(); },
+      onError: function (msg) { toast('Error: ' + msg); },
+      onModeChange: function (m) { if (inCall) setStatus(m.mode === 'speaking' ? 'Hablando…' : 'Te escucha'); },
+      onMessage: function (m) { addBubble(m.role || (m.source === 'user' ? 'user' : 'agent'), m.message); }
+    });
+  } catch (e) {
+    conv = null; setCallUi(false); setStatus('No se pudo conectar');
+    toast('No se pudo conectar: ' + (e && e.message || e));
+  }
+}
+async function hangUp() {
+  setStatus('Colgando…');
+  try { if (conv) await conv.endSession(); } catch (e) {}
+  endUi();
+}
+function endUi() {
+  if (!inCall && !conv) return;
+  const dur = t0 ? Date.now() - t0 : 0;
+  conv = null; setCallUi(false);
+  clearInterval(timerH); cancelAnimationFrame(rafH);
+  $('ring').style.transform = 'scale(1)'; $('ring').classList.remove('user');
+  try { if (wakeLock) wakeLock.release(); } catch (e) {} wakeLock = null;
+  setStatus('Clase terminada'); t0 = 0;
+  if (dur > 15000) {
+    $('after').innerHTML = '<div class="card"><b>¡Buena clase! ' + fmtTime(dur) + '</b>' +
+      '<div class="hint">En un minuto o dos se guardan tus errores y expresiones nuevas. Los verás en Progreso.</div></div>';
+    setTimeout(load, 60000); setTimeout(load, 150000);
+  }
+}
+$('callBtn').onclick = function () { inCall ? hangUp() : startCall(); };
+$('muteBtn').onclick = function () {
+  if (!conv) return;
+  muted = !muted;
+  try { conv.setMicMuted(muted); } catch (e) {}
+  $('muteBtn').classList.toggle('on', muted);
+  $('muteLbl').textContent = muted ? 'Silenciado' : 'Silenciar';
+};
+$('txBtn').onclick = function () {
+  showTx = !showTx;
+  $('txBtn').classList.toggle('on', showTx);
+  $('transcript').style.display = showTx ? '' : 'none';
+};
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible' && inCall && navigator.wakeLock && !wakeLock) {
+    navigator.wakeLock.request('screen').then(function (w) { wakeLock = w; }).catch(function () {});
+  }
+});
+
+// ====================== configuración ======================
+function openSetup(canCancel) {
+  $('c-url').value = CFG ? CFG.url : ''; $('c-token').value = CFG ? CFG.token : '';
+  $('c-cancel').style.display = canCancel ? '' : 'none'; $('c-msg').textContent = '';
+  $('setup').classList.add('on');
+}
+$('gear').onclick = function () { openSetup(true); };
+$('c-cancel').onclick = function () { $('setup').classList.remove('on'); };
+$('c-save').onclick = function () {
+  const url = cleanUrl($('c-url').value), token = $('c-token').value.trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) { $('c-msg').textContent = 'La URL no parece la de tu Apps Script (debe acabar en /exec).'; return; }
+  if (!token) { $('c-msg').textContent = 'Falta el token.'; return; }
+  const prev = CFG; CFG = { url: url, token: token };
+  $('c-msg').textContent = 'Comprobando…'; $('c-save').disabled = true;
+  api('data').then(function (d) {
+    saveCfg(CFG); $('c-save').disabled = false; $('setup').classList.remove('on');
+    DATA = d; $('loading').style.display = 'none'; showTab('call'); renderAll(); toast('Conectado');
+  }).catch(function (e) {
+    CFG = prev; $('c-save').disabled = false;
+    $('c-msg').textContent = 'No funciona: ' + (e && e.message || e);
+  });
+};
+
+// ====================== arranque ======================
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
+CFG = loadCfg();
+if (!CFG) { $('loading').style.display = 'none'; openSetup(false); } else { load(); }
+</script>
+</body>
+</html>
