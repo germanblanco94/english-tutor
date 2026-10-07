@@ -167,6 +167,30 @@
   .rv-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--muted); font-size: 14px; }
   .speak { background: none; border: 0; font-size: 22px; cursor: pointer; vertical-align: middle; }
 
+  /* ---------- shadowing ---------- */
+  .sh-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 16px; }
+  .sh-text { font-size: 22px; font-weight: 650; line-height: 1.35; text-align: center; margin: 6px 0 4px; }
+  .sh-text.hidden { filter: blur(7px); user-select: none; }
+  .sh-note { text-align: center; color: var(--muted); font-size: 14px; }
+  .sh-said { text-align: center; color: var(--muted); font-size: 14px; text-decoration: line-through; }
+  .sh-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .sh-row .btn { margin-top: 0; padding: 12px 6px; font-size: 14px; flex-direction: column; gap: 2px; }
+  .sh-row .btn .i { font-size: 20px; }
+  .rec { background: var(--red) !important; color: #fff !important; }
+  .rec-on { animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .6; } }
+  .diff { text-align: center; font-size: 18px; line-height: 1.6; margin-top: 12px; }
+  .diff .ok { color: var(--ok); } .diff .ko { color: var(--warn); text-decoration: underline wavy; }
+  .score { text-align: center; font-weight: 700; margin-top: 4px; }
+  .heard { text-align: center; color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .sh-item { display: flex; align-items: center; gap: 10px; }
+  .sh-item .txt { flex: 1; }
+  .src { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .playbtn { background: var(--soft); color: var(--accent); border: 0; border-radius: 50%; width: 30px; height: 30px; font-size: 13px; cursor: pointer; flex: none; }
+  .report h3 { font-size: 15px; margin: 12px 0 6px; }
+  .rep-err { padding: 8px 0; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: flex-start; }
+  .rep-err:first-of-type { border-top: 0; }
+
   /* ---------- configuración ---------- */
   #setup { position: fixed; inset: 0; z-index: 30; background: var(--bg); overflow: auto; display: none;
     padding: calc(24px + env(safe-area-inset-top)) 16px 24px; }
@@ -228,9 +252,9 @@
     <div id="transcript"></div>
   </section>
 
-  <!-- REPASO VISUAL -->
-  <section id="tab-review">
-    <div id="rv"></div>
+  <!-- SHADOWING -->
+  <section id="tab-shadow">
+    <div id="sh"></div>
   </section>
 
   <!-- AÑADIR -->
@@ -247,9 +271,8 @@
       <input type="text" id="f-note" placeholder="más informal que 'explain'">
       <label for="f-topic">Tema</label>
       <select id="f-topic"></select>
-      <div class="imgrow"><img id="f-imgprev" alt="" style="display:none"><button class="btn small ghost" id="f-imgbtn" type="button">🖼 Añadir imagen</button></div>
       <button class="btn" id="addBtn">Añadir y repasar en la próxima clase</button>
-      <div class="hint">El profe la meterá en la conversación de la próxima clase y te hará usarla.</div>
+      <div class="hint">El profe la meterá en la próxima clase cuando encaje, y se creará sola su ilustración para el repaso visual.</div>
     </div>
     <h2>Añadidas por ti</h2>
     <div id="recent"></div>
@@ -263,6 +286,8 @@
       <select id="s-type"></select>
       <label for="s-topic">Tema</label>
       <select id="s-topic"></select>
+      <label for="s-notes">Prepárame para… (opcional)</label>
+      <textarea id="s-notes" placeholder="Ej.: mañana tengo una call con un partner para explicarle retrasos en los desembolsos"></textarea>
       <label class="check"><input type="checkbox" id="s-once"> Solo para la próxima clase</label>
       <div class="hint">Si lo desmarcas, se mantiene en todas las clases hasta que lo cambies.</div>
       <div class="preview" id="planPreview"></div>
@@ -303,29 +328,11 @@
 
 <nav id="nav">
   <button data-t="call" class="on"><span class="ic">📞</span>Clase</button>
-  <button data-t="review"><span class="ic">🖼</span>Repaso</button>
+  <button data-t="shadow"><span class="ic">🎧</span>Shadowing</button>
   <button data-t="add"><span class="ic">＋</span>Añadir</button>
   <button data-t="next"><span class="ic">🎯</span>Próxima</button>
   <button data-t="progress"><span class="ic">📈</span>Progreso</button>
 </nav>
-<div class="modal" id="picker">
-  <div class="sheet">
-    <div class="sheet-head"><b id="pk-title">Imagen</b><button class="iconbtn" id="pk-close" aria-label="Cerrar">✕</button></div>
-    <div class="row" style="display:flex;gap:8px">
-      <input type="text" id="pk-q" placeholder="Busca en inglés: forget, meeting, rain…" autocapitalize="off" style="flex:1">
-      <button class="btn small" id="pk-search" type="button">Buscar</button>
-    </div>
-    <div class="hint">Mejor una palabra clave visual que la frase entera. Imágenes libres de Openverse.</div>
-    <div class="grid" id="pk-grid"></div>
-    <div class="or">o bien</div>
-    <label class="btn ghost filebtn">📷 Hacer una foto o elegir de la galería<input type="file" accept="image/*" id="pk-file"></label>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <input type="url" id="pk-url" placeholder="Pega la URL de una imagen" autocapitalize="off" style="flex:1">
-      <button class="btn small ghost" id="pk-useurl" type="button">Usar</button>
-    </div>
-    <button class="btn danger" id="pk-remove" type="button" style="display:none">Quitar imagen</button>
-  </div>
-</div>
 <button class="hangbar" id="hangBar"><svg style="width:20px;height:20px;transform:rotate(135deg)" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg> Colgar</button>
 <div id="toast"></div>
 
@@ -427,7 +434,8 @@ function renderAll() {
 
   // Clase
   const type = s.next_type, topic = s.next_topic;
-  $('planChip').textContent = (type || topic)
+  $('planChip').textContent = s.next_notes ? 'Hoy: prepárame para… ' + (s.next_notes.length > 34 ? s.next_notes.slice(0, 34) + '…' : s.next_notes)
+    : (type || topic)
     ? 'Hoy: ' + (type || 'tipo libre') + (topic ? ' · ' + topic : '')
     : 'Hoy: lo eliges al empezar · ' + Math.min(st.due, Number(s.max_due) || 0) + ' repasos';
   const used = st.month_minutes || 0;
@@ -451,6 +459,7 @@ function renderAll() {
   $('s-type').innerHTML = options(DATA.types, 'Lo elige el profe', s.next_type);
   $('s-topic').innerHTML = options(DATA.topics, 'Lo elige el profe', s.next_topic);
   $('s-once').checked = s.one_time === '1';
+  $('s-notes').value = s.next_notes || '';
   $('s-link').value = s.agent_link || '';
   dueCount = Number(s.max_due) || 0;
   renderDue(); renderPreview();
@@ -461,7 +470,8 @@ function renderAll() {
     ['Clases', st.sessions], ['Minutos', st.minutes], ['Errores', st.errors]
   ].map(function (x) { return '<div class="stat"><b>' + x[1] + '</b><span>' + x[0] + '</span></div>'; }).join('');
   renderExprList();
-  renderReviewHome();
+  renderShadowHome();
+  renderLastReport();
   $('v-err').innerHTML = DATA.errors.length ? DATA.errors.map(function (e) {
     return '<div class="item" data-ekey="' + esc(e.key) + '">' +
       '<div class="said">' + esc(e.said) + '</div><div class="correct">' + esc(e.correct) + '</div>' +
@@ -471,17 +481,18 @@ function renderAll() {
       '<span class="chip">' + esc(e.last_seen) + '</span></div>' +
       '<div class="actions"><button class="btn small danger" data-act="delErr">Ya lo tengo, quitar</button></div></div>';
   }).join('') : '<div class="empty">Sin errores registrados todavía.</div>';
-  $('v-ses').innerHTML = DATA.sessions.length ? DATA.sessions.map(function (x) {
+  $('v-ses').innerHTML = DATA.sessions.length ? DATA.sessions.map(function (x, i) {
     return '<div class="item"><div class="en">' + esc(x.date) + (x.minutes ? ' · ' + x.minutes + ' min' : '') + '</div>' +
       '<div class="es">' + esc(x.summary || 'Sin resumen') + '</div>' +
       '<div class="meta">' + (x.used ? '<span class="chip ok">Usaste: ' + esc(x.used) + '</span>' : '') +
-      '<span class="chip">' + x.new_expr + ' nuevas</span><span class="chip">' + x.errors + ' errores</span></div></div>';
+      '<span class="chip">' + x.new_expr + ' nuevas</span><span class="chip">' + x.errors + ' errores</span></div>' +
+      (x.report ? '<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">Ver informe</summary>' + reportHtml(x.report) + '</details>' : '') +
+      '</div>';
   }).join('') : '<div class="empty">Aún no hay clases registradas.</div>';
 }
 
 function exprItem(x) {
-  return '<div class="item' + (x.image ? ' has-img' : '') + '" data-key="' + esc(x.key) + '">' +
-    (x.image ? '<img class="thumb" loading="lazy" src="' + esc(x.image) + '" alt="">' : '') +
+  return '<div class="item" data-key="' + esc(x.key) + '">' +
     '<div class="en">' + esc(x.en) + '</div>' + (x.es ? '<div class="es">' + esc(x.es) + '</div>' : '') +
     '<div class="meta">' + (reviewLabel(x) ? '<span class="chip' + (x.due ? ' due' : '') + '">' + reviewLabel(x) + '</span>' : '') +
     '<span class="chip' + (x.level >= 4 ? ' ok' : '') + '">' + levelLabel(x.level) + '</span>' +
@@ -494,7 +505,6 @@ function exprItem(x) {
       '<label>Tema</label><select data-f="topic">' + options(DATA.topics, null, x.topic || 'general') + '</select>' +
       '<div class="actions">' +
         '<button class="btn small" data-act="save">Guardar</button>' +
-        '<button class="btn small ghost" data-act="img">🖼 ' + (x.image ? 'Cambiar imagen' : 'Añadir imagen') + '</button>' +
         (x.due ? '' : '<button class="btn small ghost" data-act="review">Repasar en la próxima</button>') +
         '<button class="btn small danger" data-act="del">Borrar</button>' +
       '</div></div></div>';
@@ -524,14 +534,6 @@ document.addEventListener('click', function (ev) {
     const o = {};
     item.querySelectorAll('[data-f]').forEach(function (f) { o[f.dataset.f] = f.value; });
     api('update', key, o).then(function () { toast('Guardada'); load(); }).catch(fail);
-  } else if (act === 'img') {
-    const x = DATA.expressions.find(function (e) { return e.key === key; });
-    openPicker({
-      title: x ? x.en : 'Imagen', query: suggestQuery(x ? x.en : ''), hasImage: !!(x && x.image),
-      onUrl: function (url) { return api('update', key, { image: url }).then(function () { toast('Imagen guardada'); load(); }); },
-      onFile: function (b64) { toast('Subiendo foto…'); return api('upload', key, b64, 'image/jpeg').then(function () { toast('Foto guardada'); load(); }); },
-      onRemove: function () { return api('update', key, { image: '' }).then(function () { toast('Imagen quitada'); load(); }); }
-    });
   } else if (act === 'review') {
     api('review', key).then(function () { toast('Entra en la próxima clase'); load(); }).catch(fail);
   } else if (act === 'del') {
@@ -550,193 +552,276 @@ $('addBtn').onclick = function () {
   const en = $('f-en').value.trim();
   if (!en) { toast('Escribe la expresión en inglés'); $('f-en').focus(); return; }
   const btn = $('addBtn'); btn.disabled = true;
-  const pend = pendingImg;
-  api('add', { en: en, es: $('f-es').value, example: $('f-ex').value, note: $('f-note').value, topic: $('f-topic').value,
-    image: pend && pend.url ? pend.url : '' })
+  api('add', { en: en, es: $('f-es').value, example: $('f-ex').value, note: $('f-note').value, topic: $('f-topic').value })
     .then(function (r) {
       btn.disabled = false;
       if (r && r.saved) {
         ['f-en', 'f-es', 'f-ex', 'f-note'].forEach(function (id) { $(id).value = ''; });
-        setPendingImg(null);
-        if (pend && pend.b64) {
-          toast('Añadida · subiendo foto…');
-          api('upload', norm(r.en), pend.b64, 'image/jpeg').then(function () { toast('Añadida con foto'); load(); }).catch(fail);
-        } else { toast('Añadida · entra en la próxima clase'); load(); }
-      } else if (r && r.reason === 'already in bank') {
-        if (pend) {
-          // Ya existía: le ponemos la imagen elegida a la que ya tenías
-          setPendingImg(null);
-          (pend.url ? api('update', norm(en), { image: pend.url }) : api('upload', norm(en), pend.b64, 'image/jpeg'))
-            .then(function () { toast('Ya la tenías: le he puesto la imagen'); load(); }).catch(fail);
-        } else toast('Ya la tenías en tu banco');
-      } else toast('No se pudo guardar');
+        toast('Añadida · entra en la próxima clase y en el shadowing'); load(); SH = null;
+      } else toast(r && r.reason === 'already in bank' ? 'Ya la tenías en tu banco' : 'No se pudo guardar');
     }).catch(function (e) { btn.disabled = false; fail(e); });
 };
 
-let pendingImg = null;
-function setPendingImg(p) {
-  pendingImg = p;
-  const prev = $('f-imgprev');
-  if (p) { prev.src = p.url || ('data:image/jpeg;base64,' + p.b64); prev.style.display = ''; $('f-imgbtn').textContent = '🖼 Cambiar imagen'; }
-  else { prev.removeAttribute('src'); prev.style.display = 'none'; $('f-imgbtn').textContent = '🖼 Añadir imagen'; }
-}
-$('f-imgbtn').onclick = function () {
-  openPicker({
-    title: $('f-en').value.trim() || 'Nueva expresión', query: suggestQuery($('f-en').value), hasImage: !!pendingImg,
-    onUrl: function (url) { setPendingImg({ url: url }); return Promise.resolve(); },
-    onFile: function (b64) { setPendingImg({ b64: b64 }); return Promise.resolve(); },
-    onRemove: function () { setPendingImg(null); return Promise.resolve(); }
+// ====================== audio (voz natural) ======================
+const AUDIO = {};            // caché en memoria: texto normalizado → URL del audio
+const player = new Audio();
+function getAudio(text) {
+  const k = norm(text);
+  if (AUDIO[k]) return Promise.resolve(AUDIO[k]);
+  if (DATA && !DATA.has_ai) return Promise.resolve(null);
+  return api('tts', text).then(function (r) {
+    const bin = atob(r.b64), arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    AUDIO[k] = URL.createObjectURL(new Blob([arr], { type: r.mime || 'audio/mpeg' }));
+    return AUDIO[k];
   });
-};
-
-// ====================== selector de imagen ======================
-let PK = null;
-const STOP = ['a', 'an', 'the', 'to', 'of', 'on', 'in', 'at', 'it', 'its', "it's", 'that', 'this', 'you', 'me', 'my', 'i', "i'm", "i'll",
-  'we', "we're", 'let', "let's", 'be', 'is', 'are', 'for', 'with', 'up', 'out', 'bit', 'could', 'can', 'do', 'does', 'so', 'just', 'some', 'someone', 'something'];
-function suggestQuery(en) {
-  const w = norm(en).split(' ').filter(function (x) { return x && STOP.indexOf(x) < 0; });
-  return w.slice(0, 2).join(' ');
 }
-function openPicker(o) {
-  PK = o;
-  $('pk-title').textContent = o.title;
-  $('pk-q').value = o.query || '';
-  $('pk-grid').innerHTML = '';
-  $('pk-url').value = '';
-  $('pk-file').value = '';
-  $('pk-remove').style.display = o.hasImage ? '' : 'none';
-  $('picker').classList.add('on');
-  if (o.query) searchImages();
-}
-function closePicker() { $('picker').classList.remove('on'); PK = null; }
-$('pk-close').onclick = closePicker;
-$('picker').onclick = function (e) { if (e.target === $('picker')) closePicker(); };
-function pickDone(p) { p.then(closePicker).catch(fail); }
-function searchImages() {
-  const q = $('pk-q').value.trim();
-  if (!q) return;
-  $('pk-grid').innerHTML = '<div class="hint" style="grid-column:1/-1">Buscando…</div>';
-  fetch('https://api.openverse.org/v1/images/?page_size=18&mature=false&q=' + encodeURIComponent(q))
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function (j) {
-      const res = (j.results || []).filter(function (x) { return x.thumbnail || x.url; });
-      $('pk-grid').innerHTML = res.length ? res.map(function (x) {
-        const u = x.thumbnail || x.url;
-        return '<img loading="lazy" src="' + esc(u) + '" data-u="' + esc(u) + '" alt="' + esc(x.title || '') + '">';
-      }).join('') : '<div class="hint" style="grid-column:1/-1">Sin resultados. Prueba otra palabra (en inglés).</div>';
-    })
-    .catch(function () {
-      $('pk-grid').innerHTML = '<div class="hint" style="grid-column:1/-1">La búsqueda no responde ahora mismo. Usa una foto o pega una URL.</div>';
+// Reproduce una frase con la voz natural (o la del móvil si no hay clave de OpenAI)
+function play(text, rate) {
+  return getAudio(text).then(function (url) {
+    if (!url) return speakFallback(text, rate);
+    return new Promise(function (resolve) {
+      player.pause(); player.src = url; player.playbackRate = rate || 1;
+      try { player.preservesPitch = true; } catch (e) {}
+      player.onended = resolve; player.onerror = resolve;
+      player.play().catch(resolve);
     });
+  }).catch(function (e) { fail(e); return speakFallback(text, rate); });
 }
-$('pk-search').onclick = searchImages;
-$('pk-q').onkeydown = function (e) { if (e.key === 'Enter') searchImages(); };
-$('pk-grid').onclick = function (e) {
-  const u = e.target.dataset && e.target.dataset.u;
-  if (!u || !PK) return;
-  e.target.classList.add('sel');
-  pickDone(PK.onUrl(u));
-};
-$('pk-useurl').onclick = function () {
-  const u = $('pk-url').value.trim();
-  if (!/^https?:\/\//.test(u)) { toast('Pega una URL que empiece por https://'); return; }
-  pickDone(PK.onUrl(u));
-};
-$('pk-remove').onclick = function () { if (PK) pickDone(PK.onRemove()); };
-$('pk-file').onchange = function () {
-  const f = this.files && this.files[0];
-  if (!f || !PK) return;
-  const cb = PK;
-  shrinkImage(f, 900).then(function (b64) { pickDone(cb.onFile(b64)); }).catch(function () { toast('No se pudo leer la imagen'); });
-};
-// Reduce la foto (máx. 900 px, JPEG) para que suba rápido y no ocupe casi nada
-function shrinkImage(file, max) {
-  return new Promise(function (resolve, reject) {
-    const img = new Image();
-    img.onload = function () {
-      const k = Math.min(1, max / Math.max(img.width, img.height));
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(img.src);
-      resolve(c.toDataURL('image/jpeg', 0.82).split(',')[1]);
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+function speakFallback(text, rate) {
+  return new Promise(function (resolve) {
+    try {
+      const u = new SpeechSynthesisUtterance(String(text).replace(/\.\.\./g, ''));
+      u.lang = 'en-US'; u.rate = (rate || 1) * 0.95; u.onend = resolve; u.onerror = resolve;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) { resolve(); }
   });
 }
+function stopAudio() { try { player.pause(); speechSynthesis.cancel(); } catch (e) {} }
+// Cualquier botón con data-say reproduce esa frase
+document.addEventListener('click', function (e) {
+  const b = e.target.closest('[data-say]');
+  if (b) { e.stopPropagation(); play(b.dataset.say); }
+}, true);
 
-// ====================== repaso visual ======================
-let RV = null; // { queue, i, graded, mode, stats }
-function renderReviewHome() {
-  if (RV || $('rv-home')) return; // hay un repaso en marcha o se está mostrando el resumen
-  const withImg = DATA.expressions.filter(function (x) { return x.image; });
-  const due = withImg.filter(function (x) { return x.due; });
-  const without = DATA.expressions.length - withImg.length;
-  $('rv').innerHTML = '<h2>Repaso visual</h2>' +
-    (withImg.length ? '<div class="card"><div style="font-size:15px">Mira la imagen, <b>di la expresión en voz alta</b> y luego descúbrela.</div>' +
-      '<button class="btn" id="rv-due"' + (due.length ? '' : ' disabled') + '>Repasar pendientes (' + due.length + ')</button>' +
-      '<button class="btn ghost" id="rv-all">Práctica libre con todas (' + withImg.length + ')</button>' +
-      '<div class="hint">La práctica libre no cambia tus fechas de repaso; los pendientes sí, igual que en clase.</div></div>'
-    : '<div class="empty">Aún no tienes expresiones con imagen.</div>') +
-    (without ? '<div class="card"><div style="font-size:15px">' + without + ' expresiones sin imagen.</div>' +
-      '<div class="hint">Añádelas desde Progreso (abre una expresión → 🖼) o al crear una nueva.</div>' +
-      '<button class="btn ghost" id="rv-goprog">Ir a Progreso</button></div>' : '');
-  if ($('rv-due')) $('rv-due').onclick = function () { startReview(due, true); };
-  if ($('rv-all')) $('rv-all').onclick = function () { startReview(withImg, false); };
-  if ($('rv-goprog')) $('rv-goprog').onclick = function () { showTab('progress'); };
+// ====================== informe de clase ======================
+function reportHtml(r) {
+  if (!r) return '';
+  let h = '<div class="report">';
+  if (r.errors && r.errors.length) {
+    h += '<h3>Lo que dijiste → cómo lo diría un nativo</h3>' + r.errors.map(function (e) {
+      return '<div class="rep-err"><button class="playbtn" data-say="' + esc(e.correct) + '" aria-label="Escuchar">▶</button><div>' +
+        (e.said ? '<div class="said">' + esc(e.said) + '</div>' : '') + '<div class="correct">' + esc(e.correct) + '</div>' +
+        (e.explanation ? '<div class="es">' + esc(e.explanation) + '</div>' : '') + '</div></div>';
+    }).join('');
+  }
+  if (r.new_expressions && r.new_expressions.length) {
+    h += '<h3>Expresiones nuevas</h3>' + r.new_expressions.map(function (x) {
+      const t = x.example || x.en;
+      return '<div class="rep-err"><button class="playbtn" data-say="' + esc(t) + '" aria-label="Escuchar">▶</button><div><div class="correct">' +
+        esc(x.en) + '</div>' + (x.es ? '<div class="es">' + esc(x.es) + '</div>' : '') +
+        (x.example ? '<div class="es"><i>' + esc(x.example) + '</i></div>' : '') + '</div></div>';
+    }).join('');
+  }
+  if (r.used && r.used.length) h += '<h3>Usaste bien</h3><div class="meta">' + r.used.map(function (u) { return '<span class="chip ok">' + esc(u) + '</span>'; }).join('') + '</div>';
+  if (!(r.errors && r.errors.length) && !(r.new_expressions && r.new_expressions.length)) h += '<div class="hint">Sin correcciones en esta clase.</div>';
+  return h + '<div class="hint" style="margin-top:10px">Escucha cada frase correcta y repítela en voz alta. Todas están ya en Shadowing.</div></div>';
 }
-function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function startReview(list, graded) {
-  RV = { queue: shuffle(list), i: 0, graded: graded, total: list.length, done: 0, stats: { again: 0, hard: 0, good: 0 }, shown: false };
-  renderCard();
+function renderLastReport() {
+  if (inCall) return;
+  const last = DATA.sessions[0];
+  if (!last || !last.report || last.date !== DATA.today) { if (!$('after').dataset.keep) $('after').innerHTML = ''; return; }
+  delete $('after').dataset.keep;
+  $('after').innerHTML = '<div class="card"><b>Informe de tu última clase</b>' + (last.minutes ? ' · ' + last.minutes + ' min' : '') + reportHtml(last.report) + '</div>';
 }
-function renderCard() {
-  const x = RV.queue[RV.i];
-  if (!x) return finishReview();
-  RV.shown = false;
-  $('rv').innerHTML = '<div class="rv-top"><span>' + (RV.done + 1) + ' / ' + RV.total + (RV.graded ? '' : ' · práctica libre') + '</span>' +
-    '<button class="btn small ghost" id="rv-stop">Salir</button></div>' +
-    '<div class="rv-card"><img class="rv-img" src="' + esc(x.image) + '" alt="">' +
-    '<div class="rv-body"><div id="rv-front"><div class="rv-q">¿Qué expresión es? Dila en voz alta.</div>' +
-      '<div class="rv-es" id="rv-hint"></div>' +
-      '<div class="actions" style="justify-content:center"><button class="btn small ghost" id="rv-hintbtn"' + (x.es ? '' : ' style="display:none"') + '>Pista</button>' +
-      '<button class="btn small" id="rv-show">Mostrar</button></div></div>' +
-    '<div id="rv-back" style="display:none"><div class="rv-en">' + esc(x.en) + ' <button class="speak" id="rv-say" aria-label="Escuchar">🔊</button></div>' +
-      (x.example ? '<div class="rv-ex">' + esc(x.example) + '</div>' : '') +
-      (x.es ? '<div class="rv-es">' + esc(x.es) + '</div>' : '') +
-      '<div class="grades"><button class="btn g-again" data-g="again">Otra vez</button><button class="btn g-hard" data-g="hard">Costó</button><button class="btn g-good" data-g="good">La sabía</button></div>' +
-    '</div></div></div>';
-  $('rv-stop').onclick = finishReview;
-  $('rv-hintbtn').onclick = function () { $('rv-hint').textContent = x.es; this.style.display = 'none'; };
-  $('rv-show').onclick = function () { $('rv-front').style.display = 'none'; $('rv-back').style.display = ''; say(x.en); };
-  $('rv-say').onclick = function () { say(x.en); };
-  $('rv').querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { grade(x, b.dataset.g); }; });
+
+// ====================== shadowing ======================
+let SH = null;     // { items, filter }
+let SR = null;     // sesión en curso { list, i }
+const SRC = { error: 'Tus errores', expr: 'Tus expresiones', clase: 'De tus clases', mia: 'Añadidas por ti' };
+function loadShadow() {
+  return api('shadowList').then(function (r) { SH = { items: r.items, has_ai: r.has_ai, filter: (SH && SH.filter) || 'error' }; renderShadowHome(); });
 }
-function grade(x, g) {
-  RV.stats[g]++;
-  if (RV.graded) api('grade', x.key, g).catch(fail);
-  if (g === 'again') RV.queue.push(x); else RV.done++;
-  RV.i++;
-  renderCard();
+function renderShadowHome() {
+  if (SR) return;
+  if (!SH) { $('sh').innerHTML = '<div class="loading">Cargando frases…</div>'; loadShadow().catch(fail); return; }
+  const counts = {}; SH.items.forEach(function (x) { counts[x.source] = (counts[x.source] || 0) + 1; });
+  const list = SH.items.filter(function (x) { return x.source === SH.filter; });
+  $('sh').innerHTML = '<h2>Shadowing</h2>' +
+    '<div class="card"><div style="font-size:15px">Escucha, <b>repite a la vez</b> imitando ritmo y entonación, y luego <b>grábate</b> para comparar.</div>' +
+    '<button class="btn" id="sh-quick">Sesión rápida (8 frases)</button>' +
+    (SH.has_ai ? '' : '<div class="hint">Sin clave de OpenAI se usa la voz del móvil y no se puede comprobar la pronunciación.</div>') + '</div>' +
+    '<div class="card"><label for="sh-new">Añade una frase (de una serie, una call, un email…)</label>' +
+    '<div style="display:flex;gap:8px"><input type="text" id="sh-new" placeholder="I\'ll loop you in on the next email." style="flex:1" autocapitalize="off">' +
+    '<button class="btn small" id="sh-add">Añadir</button></div></div>' +
+    '<div class="seg" id="sh-seg">' + ['error', 'expr', 'clase', 'mia'].map(function (k) {
+      return '<button data-f="' + k + '"' + (SH.filter === k ? ' class="on"' : '') + '>' + SRC[k].replace('Tus ', '').replace('De tus ', '').replace('Añadidas por ti', 'Mías') +
+        ' (' + (counts[k] || 0) + ')</button>';
+    }).join('') + '</div>' +
+    (list.length ? list.map(function (x, i) {
+      return '<div class="item sh-item" data-i="' + i + '"><button class="playbtn" data-say="' + esc(x.text) + '" aria-label="Escuchar">▶</button>' +
+        '<div class="txt"><div class="en" style="font-weight:500">' + esc(x.text) + '</div>' +
+        '<div class="meta">' + (x.times ? '<span class="chip ok">practicada ×' + x.times + '</span>' : '<span class="chip">sin practicar</span>') +
+        (x.source === 'mia' || x.source === 'clase' ? '<button class="btn small danger" data-del="' + esc(x.key) + '" style="padding:3px 9px;font-size:12px">Quitar</button>' : '') +
+        '</div></div></div>';
+    }).join('') : '<div class="empty">' + ({ error: 'Cuando el profe te corrija, las versiones buenas aparecerán aquí.', expr: 'Aquí salen tus expresiones.', clase: 'Después de cada clase aparecerán frases del profe.', mia: 'Añade frases que te gusten de series o del trabajo.' })[SH.filter] + '</div>');
+  $('sh-seg').querySelectorAll('button').forEach(function (b) { b.onclick = function () { SH.filter = b.dataset.f; renderShadowHome(); }; });
+  $('sh-quick').onclick = function () { startShadow(quickList()); };
+  $('sh-add').onclick = function () {
+    const t = $('sh-new').value.trim(); if (!t) return;
+    api('addPhrase', t).then(function (r) { toast(r && r.saved ? 'Frase añadida' : 'Ya la tenías'); SH.filter = 'mia'; return loadShadow(); }).catch(fail);
+  };
+  $('sh').querySelectorAll('.sh-item').forEach(function (el) {
+    el.onclick = function (e) {
+      const del = e.target.closest('[data-del]');
+      if (del) { e.stopPropagation(); confirmTap(del, function () { api('delPhrase', del.dataset.del).then(loadShadow).catch(fail); }); return; }
+      const i = Number(el.dataset.i);
+      startShadow(list.slice(i).concat(list.slice(0, i)));
+    };
+  });
 }
-function finishReview() {
-  const st = RV ? RV.stats : null, graded = RV && RV.graded;
-  RV = null;
-  if (st && (st.again + st.hard + st.good) > 0) {
-    $('rv').innerHTML = '<div class="card" style="text-align:center"><div style="font-size:40px">🎉</div><h2>¡Repaso hecho!</h2>' +
-      '<div class="meta" style="justify-content:center"><span class="chip ok">La sabía: ' + st.good + '</span><span class="chip">Costó: ' + st.hard + '</span><span class="chip">Otra vez: ' + st.again + '</span></div>' +
-      '<button class="btn" id="rv-home">Volver</button></div>';
-    $('rv-home').onclick = function () { renderReviewHome(); };
-    if (graded) setTimeout(load, 800);
-  } else renderReviewHome();
+// Mezcla: primero tus errores, luego expresiones y frases de clase, priorizando las menos practicadas
+function quickList() {
+  const by = function (src, n) {
+    return SH.items.filter(function (x) { return x.source === src; })
+      .sort(function (a, b) { return a.times - b.times || (a.last < b.last ? -1 : 1); }).slice(0, n);
+  };
+  const out = by('error', 3).concat(by('expr', 3), by('clase', 1), by('mia', 1));
+  const extra = SH.items.filter(function (x) { return out.indexOf(x) < 0; }).sort(function (a, b) { return a.times - b.times; });
+  return out.concat(extra).slice(0, 8);
 }
-function say(text) {
-  try {
-    const u = new SpeechSynthesisUtterance(String(text).replace(/\.\.\./g, ''));
-    u.lang = 'en-GB'; u.rate = 0.9;
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-  } catch (e) {}
+function startShadow(list) {
+  if (!list.length) { toast('No hay frases todavía'); return; }
+  SR = { list: list, i: 0, done: 0 };
+  renderShadowCard();
+}
+let rec = null, recChunks = [], myUrl = null, myBlob = null;
+function renderShadowCard() {
+  const x = SR.list[SR.i];
+  if (!x) return endShadow();
+  myUrl = null; myBlob = null;
+  getAudio(x.text).catch(function () {}); // precarga
+  $('sh').innerHTML = '<div class="rv-top"><span>' + (SR.i + 1) + ' / ' + SR.list.length + ' · ' + SRC[x.source] + '</span>' +
+    '<button class="btn small ghost" id="sh-exit">Salir</button></div>' +
+    '<div class="sh-card">' +
+      (x.said ? '<div class="sh-said">' + esc(x.said) + '</div>' : '') +
+      '<div class="sh-text" id="sh-text">' + esc(x.text) + '</div>' +
+      (x.note ? '<div class="sh-note">' + esc(x.note) + '</div>' : '') +
+      '<div style="text-align:center;margin-top:6px"><button class="btn small ghost" id="sh-hide">🙈 Ocultar texto</button></div>' +
+      '<div class="sh-row">' +
+        '<button class="btn ghost" id="sh-play"><span class="i">▶</span>Escuchar</button>' +
+        '<button class="btn ghost" id="sh-slow"><span class="i">🐢</span>Lento</button>' +
+        '<button class="btn ghost" id="sh-loop"><span class="i">🔁</span>A la vez ×3</button>' +
+      '</div>' +
+      '<div class="sh-row">' +
+        '<button class="btn" id="sh-rec"><span class="i">🎙</span>Grabarme</button>' +
+        '<button class="btn ghost" id="sh-mine" disabled><span class="i">👤</span>Mi versión</button>' +
+        '<button class="btn ghost" id="sh-ab" disabled><span class="i">⇄</span>Comparar</button>' +
+      '</div>' +
+      '<div id="sh-result"></div>' +
+    '</div>' +
+    '<button class="btn" id="sh-next">' + (SR.i + 1 < SR.list.length ? 'Siguiente →' : 'Terminar') + '</button>';
+  $('sh-exit').onclick = function () { stopAll(); endShadow(); };
+  $('sh-hide').onclick = function () { const t = $('sh-text'); t.classList.toggle('hidden'); this.textContent = t.classList.contains('hidden') ? '👀 Mostrar texto' : '🙈 Ocultar texto'; };
+  $('sh-play').onclick = function () { play(x.text, 1); };
+  $('sh-slow').onclick = function () { play(x.text, 0.75); };
+  $('sh-loop').onclick = function () {
+    const b = this; b.disabled = true; toast('Habla a la vez que el audio');
+    let n = 0;
+    (function next() {
+      if (n++ >= 3 || !SR) { b.disabled = false; return; }
+      play(x.text, 0.9).then(function () { setTimeout(next, 900); });
+    })();
+  };
+  $('sh-rec').onclick = function () { rec && rec.state === 'recording' ? stopRec() : startRec(x); };
+  $('sh-mine').onclick = function () { if (myUrl) { stopAudio(); player.src = myUrl; player.playbackRate = 1; player.play(); } };
+  $('sh-ab').onclick = function () {
+    play(x.text, 1).then(function () { setTimeout(function () { if (myUrl) { player.src = myUrl; player.playbackRate = 1; player.play(); } }, 400); });
+  };
+  $('sh-next').onclick = function () {
+    stopAll();
+    api('shadowDone', x.key).catch(function () {});
+    x.times = (x.times || 0) + 1;
+    SR.done++; SR.i++; renderShadowCard();
+  };
+}
+function stopAll() { stopAudio(); if (rec && rec.state === 'recording') { try { rec.onstop = null; rec.stop(); } catch (e) {} } }
+function startRec(x) {
+  stopAudio();
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+    const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].filter(function (t) { return window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t); })[0];
+    rec = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    recChunks = [];
+    rec.ondataavailable = function (e) { if (e.data && e.data.size) recChunks.push(e.data); };
+    rec.onstop = function () {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+      myBlob = new Blob(recChunks, { type: rec.mimeType || type || 'audio/webm' });
+      myUrl = URL.createObjectURL(myBlob);
+      $('sh-mine').disabled = false; $('sh-ab').disabled = false;
+      setRecBtn(false);
+      checkPronunciation(x);
+    };
+    rec.start();
+    setRecBtn(true);
+    setTimeout(function () { if (rec && rec.state === 'recording') stopRec(); }, 20000); // máx. 20 s
+  }).catch(function () { toast('Permite el micrófono para grabarte'); });
+}
+function stopRec() { try { rec.stop(); } catch (e) {} }
+function setRecBtn(on) {
+  const b = $('sh-rec'); if (!b) return;
+  b.classList.toggle('rec', on); b.classList.toggle('rec-on', on);
+  b.innerHTML = on ? '<span class="i">⏹</span>Parar' : '<span class="i">🎙</span>Otra vez';
+}
+function checkPronunciation(x) {
+  const out = $('sh-result');
+  if (!SH.has_ai) { out.innerHTML = '<div class="heard">Escucha tu versión y compárala con la del modelo.</div>'; return; }
+  out.innerHTML = '<div class="heard">Comprobando…</div>';
+  const fr = new FileReader();
+  fr.onload = function () {
+    const b64 = String(fr.result).split(',')[1];
+    api('transcribe', b64, myBlob.type).then(function (r) {
+      if (!$('sh-result')) return;
+      const d = diffWords(x.text, r.text || '');
+      out.innerHTML = '<div class="diff">' + d.html + '</div>' +
+        '<div class="score" style="color:' + (d.score >= 85 ? 'var(--ok)' : d.score >= 60 ? '#b7791f' : 'var(--warn)') + '">' + d.score + '% ' +
+        (d.score >= 85 ? '¡Muy bien!' : d.score >= 60 ? 'Casi' : 'Otra vez') + '</div>' +
+        '<div class="heard">Te ha entendido: “' + esc(r.text || '…') + '”</div>' +
+        (d.score < 85 ? '<div class="hint" style="text-align:center">Las palabras subrayadas son las que no se te han entendido. Escucha el modelo en lento y repítelas.</div>' : '');
+    }).catch(function (e) { out.innerHTML = '<div class="heard">No se pudo comprobar (' + esc(e.message || e) + '). Compara de oído con «Comparar».</div>'; });
+  };
+  fr.readAsDataURL(myBlob);
+}
+// Marca qué palabras de la frase modelo aparecen en lo que te ha entendido (en orden)
+function diffWords(target, heard) {
+  const tw = String(target).split(/\s+/).filter(Boolean);
+  const tn = tw.map(function (w) { return norm(w).replace(/'/g, ''); });
+  const hn = norm(heard).replace(/'/g, '').split(' ').filter(Boolean);
+  const n = tn.length, m = hn.length, L = [];
+  for (let i = 0; i <= n; i++) { L.push(new Array(m + 1).fill(0)); }
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    L[i][j] = tn[i] && tn[i] === hn[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const ok = new Array(n).fill(false);
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (tn[i] && tn[i] === hn[j]) { ok[i] = true; i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  const real = tn.filter(Boolean).length || 1;
+  const hits = ok.filter(function (v, k) { return v && tn[k]; }).length;
+  return {
+    score: Math.round(hits / real * 100),
+    html: tw.map(function (w, k) { return '<span class="' + (!tn[k] || ok[k] ? 'ok' : 'ko') + '">' + esc(w) + '</span>'; }).join(' ')
+  };
+}
+function endShadow() {
+  const done = SR ? SR.done : 0;
+  SR = null;
+  if (done) {
+    $('sh').innerHTML = '<div class="card" style="text-align:center"><div style="font-size:40px">🎧</div><h2>¡' + done + ' frases practicadas!</h2>' +
+      '<div class="hint">Unos minutos al día de shadowing hacen que estas frases te salgan solas al hablar.</div>' +
+      '<button class="btn" id="sh-back">Volver</button></div>';
+    $('sh-back').onclick = function () { loadShadow().catch(fail); };
+  } else loadShadow().catch(fail);
 }
 
 // ====================== próxima clase ======================
@@ -749,17 +834,23 @@ function renderDue() {
 $('dueMinus').onclick = function () { dueCount = Math.max(0, dueCount - 1); renderDue(); };
 $('duePlus').onclick = function () { dueCount = Math.min(15, dueCount + 1); renderDue(); };
 function renderPreview() {
-  const type = $('s-type').value, topic = $('s-topic').value;
-  $('planPreview').innerHTML = (!type && !topic)
-    ? 'El profe te preguntará qué te apetece, como siempre.'
-    : 'El profe empezará con: <b>' + esc(type || 'el tipo de clase que él elija') + '</b> sobre <b>' +
-      esc(topic || 'un tema que él elija') + '</b>' + ($('s-once').checked ? ' (solo la próxima clase).' : ' (en todas las clases).');
+  const type = $('s-type').value, topic = $('s-topic').value, notes = $('s-notes').value.trim();
+  const once = $('s-once').checked ? ' (solo la próxima clase).' : ' (en todas las clases).';
+  if (notes) {
+    $('planPreview').innerHTML = 'El profe ensayará contigo: <b>' + esc(notes) + '</b>' + (type ? ', en formato <b>' + esc(type) + '</b>' : '') + once;
+  } else if (!type && !topic) {
+    $('planPreview').innerHTML = 'El profe te preguntará qué te apetece, como siempre.';
+  } else {
+    $('planPreview').innerHTML = 'El profe empezará con: <b>' + esc(type || 'el tipo de clase que él elija') + '</b> sobre <b>' +
+      esc(topic || 'un tema que él elija') + '</b>' + once;
+  }
 }
 ['s-type', 's-topic', 's-once'].forEach(function (id) { $(id).onchange = renderPreview; });
+$('s-notes').oninput = renderPreview;
 $('saveSettings').onclick = function () {
   const btn = $('saveSettings'); btn.disabled = true;
   api('settings', {
-    next_type: $('s-type').value, next_topic: $('s-topic').value,
+    next_type: $('s-type').value, next_topic: $('s-topic').value, next_notes: $('s-notes').value.trim(),
     one_time: $('s-once').checked ? '1' : '0', max_due: dueCount, agent_link: $('s-link').value.trim()
   }).then(function () { btn.disabled = false; toast('Guardado'); load(); })
     .catch(function (e) { btn.disabled = false; fail(e); });
@@ -867,8 +958,9 @@ function endUi() {
   try { if (wakeLock) wakeLock.release(); } catch (e) {} wakeLock = null;
   setStatus('Clase terminada'); t0 = 0;
   if (dur > 15000) {
+    $('after').dataset.keep = '1';
     $('after').innerHTML = '<div class="card"><b>¡Buena clase! ' + fmtTime(dur) + '</b>' +
-      '<div class="hint">En un minuto o dos se guardan tus errores y expresiones nuevas. Los verás en Progreso.</div></div>';
+      '<div class="hint">En un minuto o dos aparecerá aquí el informe con tus correcciones para escucharlas y repetirlas.</div></div>';
     setTimeout(load, 60000); setTimeout(load, 150000);
   }
 }
